@@ -1,0 +1,58 @@
+title: $:/plugins/BTC/Muuri/ui/ControlPanel/Appearance
+tags: $:/tags/ControlPanel/Appearance
+
+//<small>Tiddler margin left/right:</small>//
+
+<$edit-text tag="input" tiddler="$:/config/muuri/tiddler/margin" default="" placeholder="tiddler margin left/right"/>
+
+//<small>Tiddler margin bottom:</small>//
+
+<$edit-text tag="input" tiddler="$:/config/muuri/tiddler/margin-bottom" default="" placeholder="tiddler margin bottom"/>
+
+//<small>Top story river margin:</small>//
+
+<$edit-text tag="input" tiddler="$:/config/muuri/storyview/story-river/margin-top" default="" placeholder="top story river margin"/>
+
+//<small>Max amount of columns:</small>//
+
+<$edit-text tag="input" tiddler="$:/config/muuri/storyview/columns/max" default="" placeholder="max columns"/>
+
+//<small>Drag-sort threshold:</small>//
+
+<$edit-text tag="input" tiddler="$:/config/muuri/storyview/dragsort-threshold" default="" placeholder="threshold"/>
+
+//<small>Align right:</small>//
+
+<$select tiddler="$:/state/config/muuri/storyview/align-right" default="yes">
+<option value="no">no</option>
+<option value="yes">yes</option>
+</$select>
+
+//<small>Align bottom:</small>//
+
+<$select tiddler="$:/state/config/muuri/storyview/align-bottom" default="no">
+<option value="no">no</option>
+<option value="yes">yes</option>
+</$select>
+
+//<small>Gapless story view:</small>//
+
+<$select tiddler="$:/state/config/muuri/storyview/fill-gaps" default="no">
+<option value="no">no</option>
+<option value="yes">yes</option>
+</$select>
+
+//<small>Hide titles and tags:</small>//
+
+<$select tiddler="$:/state/config/muuri/storyview/hide-titles-tags" default="no">
+<option value="no">no</option>
+<option value="yes">yes</option>
+</$select>
+
+//<small>Drag-sort action:</small>//
+
+<$select tiddler="$:/config/muuri/storyview/dragsort-action" default="move">
+<option value="move">move</option>
+<option value="swap">swap</option>
+</$select>
+
