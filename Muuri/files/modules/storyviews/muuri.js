@@ -530,19 +530,13 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri.layout();
 		this.muuri.synchronize();
 	}
-	if(changedTiddlers[SELECTTEXT_CONFIG]) {
+	if(changedTiddlers[SELECTTEXT_CONFIG] || changedAttributes.selectText) {
 		this.muuri._settings.dragEnabled = this.dragEnabled = this.listWidget.getAttribute("selectText",this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== "yes";
 		var items = this.muuri.getItems();
 		var elements = [];
 		for(var i=0; i<items.length; i++) {
 			elements.push(items[i]._element);
 		}
-/*		this.muuri.hide(items,{instant: true, onFinish: function(items) {
-			self.muuri.refreshItems();
-			self.muuri.show(items,{instant: true});
-			self.muuri._refreshDimensions();
-			self.muuri.layout(true);
-		}});*/
 		this.muuri.remove(items,{removeElements:true,layout:false});
 		this.muuri.add(elements,{layout:false});
 		this.muuri.layout(true);
