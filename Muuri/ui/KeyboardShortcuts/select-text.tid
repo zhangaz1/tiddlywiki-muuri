@@ -1,0 +1,9 @@
+title: $:/plugins/BTC/Muuri/ui/KeyboardShortcuts/select-text
+tags: $:/tags/KeyboardShortcut
+key: ((select-text))
+
+<$list filter="[[$:/state/config/muuri/storyview/select-text]is[missing]] [[$:/state/config/muuri/storyview/select-text]!is[missing]get[text]match[no]]" emptyMessage="""
+<$action-setfield $tiddler="$:/state/config/muuri/storyview/select-text" text="no"/>
+""">
+<$action-setfield $tiddler="$:/state/config/muuri/storyview/select-text" text="yes"/>
+</$list>
