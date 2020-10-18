@@ -573,13 +573,6 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 			self.listWidget.refreshSelf();
 		},50);
 	}
-	if(changedTiddlers["$:/state/sidebar"]) {
-		setTimeout(function() {
-			self.muuri.refreshItems();
-			self.muuri._refreshDimensions();
-			self.muuri.layout();			
-		},$tw.utils.getAnimationDuration());
-	}
 	return true;
 }
 
