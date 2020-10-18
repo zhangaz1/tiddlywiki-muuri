@@ -545,13 +545,13 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri.add(elements,{layout:false});
 		this.muuri.layout(true);
 	}
-	if(changedTiddlers[ALIGNRIGHT_CONFIG]) {
+	if(changedTiddlers[ALIGNRIGHT_CONFIG] || changedAttributes.alignRight) {
 		this.muuri._settings.layout.alignRight = this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
 		this.muuri.layout();
 	}
-	if(changedTiddlers[ALIGNBOTTOM_CONFIG]) {
+	if(changedTiddlers[ALIGNBOTTOM_CONFIG] || changedAttributes.alignBottom) {
 		this.muuri._settings.layout.alignBottom = this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
@@ -562,16 +562,19 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri._refreshDimensions();
 		this.muuri.layout();		
 	}
-	if(changedTiddlers[DRAGSORTACTION_CONFIG]) {
+	if(changedTiddlers[DRAGSORTACTION_CONFIG] || changedAttributes.dragSortAction) {
 		this.muuri._settings.dragSortPredicate.action = this.dragSortAction = this.listWidget.getAttribute("dragSortAction",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : "move");
 	}
-	if(changedTiddlers[DRAGSORTTHRESHOLD_CONFIG]) {
+	if(changedTiddlers[DRAGSORTTHRESHOLD_CONFIG] || changedAttributes.dragSortThreshold) {
 		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));		
 	}
 	if(changedTiddlers[this.itemTemplate] || changedTiddlers[this.itemEditTemplate]) {
 		setTimeout(function(){
 			self.listWidget.refreshSelf();
 		},50);
+	}
+	if(changedAttributes.storyList || changedAttributes.storyListField || changedAttributes.containerClass || changedAttributes.itemClass || changedAttributes.zIndexTiddler) {
+		this.listWidget.refreshSelf();
 	}
 	return true;
 }
