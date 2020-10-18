@@ -55,7 +55,7 @@ var MuuriStoryView = function(listWidget) {
 	.on("layoutStart", function() {
 	})
 	.on("layoutEnd", function() {
-			self.updateZIndexList();
+		self.updateZIndexList();
 	})
 	.on("destroy", function() {
 		self.removeAllListeners();
@@ -72,7 +72,6 @@ var MuuriStoryView = function(listWidget) {
 	})
 	.on("beforeReceive", function(data) {
 	});
-
 };
 
 MuuriStoryView.prototype.updateZIndexList = function(options) {
@@ -288,9 +287,9 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 		this.addResizeListener(element,function() {
 			self.refreshMuuriGrid();
 		});
-		this.addResizeListener(this.muuri._element,function() {
-		self.refreshMuuriGrid();
-	});
+		this.addResizeListener(self.muuri._element,function() {
+			self.refreshMuuriGrid();
+		});
 	}
 
 	this.muuri.synchronizeGrid = function() {
@@ -367,12 +366,17 @@ MuuriStoryView.prototype.lookupDragTarget = function(element) {
 
 MuuriStoryView.prototype.detectGridWithinGrid = function(element) {
 	var gridNode = this.muuri.getItems()[0] ? this.muuri.getItems()[0].getGrid()._element : null;
+
 	if(!gridNode) {
 		return true;
 	}
 	var elementChildNodes = element.childNodes;
 	var isCurrentGrid = false,
 		foundGrid = false;
+	
+	if(elementChildNodes.length === 0) {
+		return true;
+	}
 	$tw.utils.each(elementChildNodes,function(node) {
 		while(node && !foundGrid) {
 			if(node instanceof Element && node.getAttribute("data-grid") === "muuri") {
@@ -568,6 +572,13 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		setTimeout(function(){
 			self.listWidget.refreshSelf();
 		},50);
+	}
+	if(changedTiddlers["$:/state/sidebar"]) {
+		setTimeout(function() {
+			self.muuri.refreshItems();
+			self.muuri._refreshDimensions();
+			self.muuri.layout();			
+		},$tw.utils.getAnimationDuration());
 	}
 	return true;
 }
