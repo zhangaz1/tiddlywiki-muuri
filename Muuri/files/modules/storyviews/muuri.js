@@ -454,9 +454,15 @@ MuuriStoryView.prototype.removeResizeListener = function(element,fn) {
 };
 
 MuuriStoryView.prototype.refreshMuuriGrid = function(item) {
+	var self = this;
 	this.muuri.refreshItems();
 	this.muuri._refreshDimensions();
 	this.muuri.layout(); //no .layout(true), make tiddlers move, not jump instantly
+	setTimeout(funtcion() {
+		self.muuri.refreshItems();
+		self.muuri._refreshDimensions();
+		self.muuri.layout();
+	},this.animationDuration);
 };
 
 MuuriStoryView.prototype.isNode = function(o) {
