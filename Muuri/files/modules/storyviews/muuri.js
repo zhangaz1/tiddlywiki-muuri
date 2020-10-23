@@ -30,15 +30,21 @@ if(typeof window !== "undefined") {
 	if(!window.Muuri) {
 		window.Muuri = require("$:/plugins/BTC/Muuri/library/muuri.min.js");
 	}
+	if($tw.Grids === undefined) {
+		$tw.Grids = [];
+	}
 }
 
 var MuuriStoryView = function(listWidget) {
 	var self = this;
 	this.listWidget = listWidget;
 	this.itemTitlesArray = [];
+	this.connectedGrids = [];
 
 	this.getMuuriAttributes();
 	this.createMuuriGrid();
+	
+	this.addToGlobalGrids();
 
 	this.muuri.on("dragReleaseEnd",function(item) {
 		self.onDragReleaseEnd(item);
@@ -51,6 +57,7 @@ var MuuriStoryView = function(listWidget) {
 		self.restoreIframeEvents();
 	})
 	.on("dragStart", function(item, event) {
+		self.findConnectedGrids();
 	})
 	.on("layoutStart", function() {
 	})
@@ -58,6 +65,7 @@ var MuuriStoryView = function(listWidget) {
 		self.updateZIndexList();
 	})
 	.on("destroy", function() {
+		self.removeFromGlobalGrids();
 		self.removeAllListeners();
 	})
 	.on("dragInit",function(item, event) {
@@ -72,6 +80,50 @@ var MuuriStoryView = function(listWidget) {
 	})
 	.on("beforeReceive", function(data) {
 	});
+};
+
+MuuriStoryView.prototype.findConnectedGrids = function() {
+	var self = this,
+		connectedGrids = this.listWidget.document.documentElement.querySelectorAll(this.connectedGridsSelector);
+	if(connectedGrids.length > 0) {
+		for(var i=0; i<$tw.Grids.length; i++) {
+			for(var k=0; k<connectedGrids.length; k++) {
+				if($tw.Grids[i]._element === connectedGrids[k]) {
+					$tw.utils.pushTop(this.connectedGrids,$tw.Grids[i]);
+				}
+			}
+		}
+	} else {
+		this.connectedGrids = [this.muuri];
+	}
+	console.log(this.connectedGrids);
+};
+
+MuuriStoryView.prototype.addToGlobalGrids = function() {
+	$tw.utils.pushTop($tw.Grids,this.muuri);
+	var globalGridElements = this.listWidget.document.documentElement.querySelectorAll('[data-grid="muuri"]');
+	for(var i=0; i<$tw.Grids.length; i++) {
+		var globalGrid = $tw.Grids[i],
+				foundGrid = false;
+		for(var k=0; k<globalGridElements.length; k++) {
+			var globalGridElement = globalGridElements[k];
+			if(globalGrid._element === globalGridElement) {
+				foundGrid = true;
+			}
+		}
+		if(!foundGrid) {
+			$tw.Grids.splice(i,1);
+		}
+	}
+};
+
+MuuriStoryView.prototype.removeFromGlobalGrids = function() {
+	for(var i=0; i<$tw.Grids.length; i++) {
+		var grid = $tw.Grids[i];
+		if(grid._element === this.muuri._element) {
+			$tw.Grids.splice(i,1);
+		}
+	}
 };
 
 MuuriStoryView.prototype.updateZIndexList = function(options) {
@@ -170,6 +222,7 @@ MuuriStoryView.prototype.removeAllListeners = function() {
 
 MuuriStoryView.prototype.refreshItemTitlesArray = function() {
 	this.muuri.refreshItems();
+	this.findConnectedGrids();
 	var items = this.muuri.getItems(),
 			muuriItems = [];
 	this.itemTitlesArray = [];
@@ -187,12 +240,14 @@ MuuriStoryView.prototype.refreshItemTitlesArray = function() {
 };
 
 MuuriStoryView.prototype.findListWidget = function(element) {
-	var listWidgetChildren = this.listWidget.children;
-	//find the widget corresponding to this element
-	for(var i=0; i<listWidgetChildren.length; i++) {
-		var listElement = listWidgetChildren[i] ? listWidgetChildren[i].findFirstDomNode() : null;
-		if(listElement && (listElement === element)) {
-			return(listWidgetChildren[i]);
+	for(var i=0; i<this.connectedGrids.length; i++) {
+		var listWidgetChildren = this.connectedGrids[i].listWidget.children;
+		//find the widget corresponding to this element
+		for(var k=0; k<listWidgetChildren.length; k++) {
+			var listElement = listWidgetChildren[k] ? listWidgetChildren[k].findFirstDomNode() : null;
+			if(listElement && (listElement === element)) {
+				return(listWidgetChildren[k]);
+			}
 		}
 	}
 	return null;
@@ -212,15 +267,16 @@ MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
 			isReleasing = true;
 		}
 	}
+	this.findConnectedGrids();
 	if(isReleasing === false) {
-		this.synchronizeGrid(true);
+		for(i=0; i<this.connectedGrids.length; i++) {
+			this.connectedGrids[i].synchronizeGrid();
+		}
 	}
 };
 
-MuuriStoryView.prototype.synchronizeGrid = function(refreshItemTitlesArray) {
-	if(refreshItemTitlesArray) {
-		this.refreshItemTitlesArray();
-	}
+MuuriStoryView.prototype.synchronizeGrid = function() {
+	this.refreshItemTitlesArray();
 	this.muuri.synchronize();
 	var hasChanged = false;
 	if(this.itemTitlesArray.length !== this.listWidget.list.length) {
@@ -254,10 +310,16 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 		this.itemSelector = "." + classes[0];
 		this.itemClass = classes[0];
 	}
+	this.connectedGridsSelector = this.listWidget.getAttribute("connectionSelector");
 	this.noDragTags = ["input","INPUT","textarea","TEXTAREA","button","BUTTON","select","SELECT"];
 	this.dragSortInterval = parseInt(this.listWidget.getAttribute("dragSortInterval","100"));
 	this.dragSortAction = this.listWidget.getAttribute("dragSortAction",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : "move");
 	this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));
+	var dragHandle = this.listWidget.getAttribute("dragHandle",null);
+	if(dragHandle === "") {
+		dragHandle = null;
+	}
+	this.dragHandle = dragHandle;
 //	this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
 	this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
 	this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
@@ -272,7 +334,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
 	var self = this;
-	
+
 	this.muuriOptions = this.collectMuuriOptions();
 	var domNode = this.listWidget.parentDomNode;
 	domNode.setAttribute("data-grid","muuri");
@@ -292,6 +354,8 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 		});
 	}
 
+	this.muuri.listWidget = this.listWidget;
+
 	this.muuri.synchronizeGrid = function() {
 		self.synchronizeGrid();
 	};
@@ -305,6 +369,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 	return {
 		items: self.itemSelector,
 		dragEnabled: self.dragEnabled,
+		dragHandle: self.dragHandle,
 		layout: {
 			fillGaps: false,
 			horizontal: self.horizontal,
@@ -327,6 +392,9 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 			} else {
 				return false;
 			}
+		},
+		dragSort: function () {
+			return self.connectedGrids;
 		},
 		dragSortInterval: self.dragSortInterval,
 		showDuration: self.animationDuration,
@@ -574,7 +642,7 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 			self.listWidget.refreshSelf();
 		},50);
 	}
-	if(changedAttributes.storyList || changedAttributes.storyListField || changedAttributes.containerClass || changedAttributes.itemClass || changedAttributes.zIndexTiddler) {
+	if(changedAttributes.storyList || changedAttributes.storyListField || changedAttributes.containerClass || changedAttributes.itemClass || changedAttributes.zIndexTiddler || changedAttributes.dragHandle) {
 		this.listWidget.refreshSelf();
 	}
 	return true;
