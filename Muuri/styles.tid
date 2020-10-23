@@ -230,6 +230,10 @@ display: none;
 z-index: -1;
 }
 
+.tc-story-river.tc-muuri-river > .tc-tiddler-frame [data-grid="muuri"] {
+z-index: -1 !important;
+}
+
 </$list>
 
 .tc-story-river.tc-muuri-river {
