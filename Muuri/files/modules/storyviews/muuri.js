@@ -84,19 +84,21 @@ var MuuriStoryView = function(listWidget) {
 
 MuuriStoryView.prototype.findConnectedGrids = function() {
 	var self = this,
-		connectedGrids = this.listWidget.document.documentElement.querySelectorAll(this.connectedGridsSelector);
+		connectedGrids = this.listWidget.document.documentElement.querySelectorAll(this.connectedGridsSelector),
+			newConnectedGrids = [];
 	if(connectedGrids.length > 0) {
 		for(var i=0; i<$tw.Grids.length; i++) {
 			for(var k=0; k<connectedGrids.length; k++) {
 				if($tw.Grids[i]._element === connectedGrids[k]) {
-					$tw.utils.pushTop(this.connectedGrids,$tw.Grids[i]);
+					$tw.utils.pushTop(newConnectedGrids,$tw.Grids[i]);
 				}
 			}
 		}
+		$tw.utils.pushTop(newConnectedGrids,this.muuri);
+		this.connectedGrids = newConnectedGrids;
 	} else {
 		this.connectedGrids = [this.muuri];
 	}
-	console.log(this.connectedGrids);
 };
 
 MuuriStoryView.prototype.addToGlobalGrids = function() {
@@ -254,7 +256,7 @@ MuuriStoryView.prototype.findListWidget = function(element) {
 };
 
 MuuriStoryView.prototype.getItemTitle = function(item) {
-	var element = item.getElement();
+	var element = item._element;
 	var widget = this.findListWidget(element);
 	return widget ? widget.parseTreeNode.itemTitle : null;
 };
@@ -290,7 +292,7 @@ MuuriStoryView.prototype.synchronizeGrid = function() {
 		}
 	}
 
-	if(hasChanged) {
+	if(hasChanged && this.itemTitlesArray.indexOf(undefined) === -1 && this.itemTitlesArray.indexOf(null) === -1) {
 		this.listWidget.wiki.setText(this.storyListTitle,this.storyListField,undefined,this.itemTitlesArray);
 	}
 };
@@ -342,19 +344,19 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 	$tw.wiki.addEventListener("change",function(changes) {
 		self.muuriRefresh(changes);
 	});
+	this.muuri.listWidget = this.listWidget;
 	var items = this.muuri.getItems();
+	this.findConnectedGrids();
 	for(var i=0; i<items.length; i++) {
 		var element = items[i].getElement();
-		this.itemTitlesArray.push(element.dataset.tiddlerTitle);
+		this.itemTitlesArray.push(this.getItemTitle(items[i]));//element.dataset.tiddlerTitle);
 		this.addResizeListener(element,function() {
 			self.refreshMuuriGrid();
 		});
-		this.addResizeListener(self.muuri._element,function() {
-			self.refreshMuuriGrid();
-		});
 	}
-
-	this.muuri.listWidget = this.listWidget;
+	this.addResizeListener(self.muuri._element,function() {
+		self.refreshMuuriGrid();
+	});
 
 	this.muuri.synchronizeGrid = function() {
 		self.synchronizeGrid();
